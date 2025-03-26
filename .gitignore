@@ -1,0 +1,12 @@
+# created by virtualenv automatically
+frontend/screens/my/api_key.py
+.idea
+frontend/screens/__pycache__/
+frontend/data_handler/__pycache__/
+frontend/components/__pycache__/
+/frontend/screens/my/data/test_audio/
+/frontend/screens/my/data/model/
+frontend/screens/my/__pycache__/
+frontend/__pycache__/
+/roma/
+.env

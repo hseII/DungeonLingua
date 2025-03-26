@@ -1,0 +1,325 @@
+{
+    "dungeon_name": "The Crypt of Ill-Gotten Phrases",
+    "main_quest": {
+        "goal": "Recover the 'Grand Lexicon,' a cursed dictionary that corrupts all languages it touches.",
+        "description": "A subterranean crypt filled with the discarded words of forgotten civilizations. The air crackles with linguistic energy, and the walls whisper half-formed sentences.",
+        "difficulty_level": "B"
+    },
+    "player_preferences": {
+        "language_focus": "English grammar",
+        "difficulty_level": "B"
+    },
+    "rooms": [
+        {
+            "id": "room1",
+            "name": "Entrance Hall",
+            "description": "A grand hall with crumbling pillars and a mosaic floor depicting the Tower of Babel. Faint echoes of forgotten languages reverberate through the chamber.",
+            "room_type": "normal",
+            "is_start": true,
+            "exits": [
+                {
+                    "target_room": "room2"
+                }
+            ],
+            "npcs": [],
+            "puzzles": []
+        },
+        {
+            "id": "room2",
+            "name": "Gallery of Lost Translations",
+            "description": "Paintings depicting scenes from different cultures, but the captions are all garbled and nonsensical. A palpable sense of linguistic confusion hangs in the air.",
+            "room_type": "normal",
+            "is_start": false,
+            "exits": [
+                {
+                    "target_room": "room1"
+                },
+                {
+                    "target_room": "room3"
+                },
+                {
+                    "target_room": "room10"
+                }
+            ],
+            "npcs": [],
+            "puzzles": []
+        },
+        {
+            "id": "room3",
+            "name": "Chamber of Misused Modifiers",
+            "description": "Statues of grammarians frozen in poses of frustration surround a central pedestal. A faint hum emanates from the pedestal.",
+            "room_type": "normal",
+            "is_start": false,
+            "exits": [
+                {
+                    "target_room": "room2"
+                },
+                {
+                    "target_room": "room4"
+                }
+            ],
+            "npcs": [
+                {
+                    "name": "The Grammarian Ghost",
+                    "appearance": "A translucent figure clutching a tattered grammar book.",
+                    "type": "guardian",
+                    "behavior": "Hostile until the challenge is completed.",
+                    "challenge": "Correct the grammatical errors in the following sentence: 'Their going to loose they're minds if they're not careful.'"
+                }
+            ],
+            "puzzles": []
+        },
+        {
+            "id": "room4",
+            "name": "Hall of Whispers",
+            "description": "The walls seem to breathe, whispering fragmented sentences in countless languages. It's difficult to focus amidst the cacophony.",
+            "room_type": "normal",
+            "is_start": false,
+            "exits": [
+                {
+                    "target_room": "room3"
+                },
+                {
+                    "target_room": "room5"
+                }
+            ],
+            "npcs": [
+                {
+                    "name": "Echo Weaver",
+                    "appearance": "A shadowy figure cloaked in swirling mist, its voice a chorus of countless whispers.",
+                    "type": "conversational",
+                    "behavior": "Neutral, but easily irritated by grammatical errors.",
+                    "trigger_words": [
+                        "grammar",
+                        "syntax",
+                        "vocabulary",
+                        "semantics",
+                        "linguistics",
+                        "morphology",
+                        "etymology",
+                        "conjugation"
+                    ],
+                    "patience": 3,
+                    "information_to_share": "room5",
+                    "trap_rooms": [
+                        "room10",
+                        "room12",
+                        "room11"
+                    ]
+                }
+            ],
+            "puzzles": []
+        },
+        {
+            "id": "room5",
+            "name": "Archive of Half-Truths",
+            "description": "Shelves overflowing with ancient tomes and scrolls, many containing deliberately misleading information. The air smells of dust and decay.",
+            "room_type": "normal",
+            "is_start": false,
+            "exits": [
+                {
+                    "target_room": "room4"
+                },
+                {
+                    "target_room": "room6"
+                }
+            ],
+            "npcs": [],
+            "puzzles": [
+                {
+                    "type": "Riddle",
+                    "description": "I am taken from a mine, and shut up in a wooden case, from which I am never released, and used by almost everybody. What am I?",
+                    "solution": "Pencil"
+                }
+            ],
+            "treasures": [
+                {
+                    "type": "scroll",
+                    "words": [
+                        {
+                            "word": "Syntax",
+                            "translation": "The arrangement of words and phrases to create well-formed sentences in a language.",
+                            "usage_examples": [
+                                "The syntax of English is relatively straightforward.",
+                                "Understanding syntax is crucial for clear communication."
+                            ]
+                        },
+                        {
+                            "word": "Vocabulary",
+                            "translation": "The body of words used in a particular language.",
+                            "usage_examples": [
+                                "Expanding your vocabulary is essential for effective writing.",
+                                "A rich vocabulary allows for nuanced expression."
+                            ]
+                        }
+                    ],
+                    "description": "A brittle scroll containing definitions of key linguistic terms.",
+                    "is_final_goal": false,
+                    "linked_npc": "Echo Weaver"
+                }
+            ]
+        },
+        {
+            "id": "room6",
+            "name": "Chamber of Forgotten Dialects",
+            "description": "The walls are adorned with inscriptions in obscure and undecipherable languages. A strange, hypnotic melody fills the room.",
+            "room_type": "normal",
+            "is_start": false,
+            "exits": [
+                {
+                    "target_room": "room5"
+                },
+                {
+                    "target_room": "room7"
+                }
+            ],
+            "npcs": [
+                {
+                    "name": "The Linguist Lich",
+                    "appearance": "A skeletal figure draped in tattered robes, its eyes glowing with arcane knowledge.",
+                    "type": "guardian",
+                    "behavior": "Hostile unless the challenge is completed.",
+                    "challenge": "Use the phrasal verb 'brush up on' in a sentence that demonstrates its meaning."
+                }
+            ],
+            "puzzles": []
+        },
+        {
+            "id": "room7",
+            "name": "Hall of Silent Vowels",
+            "description": "An unnerving silence pervades the room. All sound seems to be absorbed by the walls, leaving only a deafening stillness.",
+            "room_type": "normal",
+            "is_start": false,
+            "exits": [
+                {
+                    "target_room": "room6"
+                },
+                {
+                    "target_room": "room8"
+                }
+            ],
+            "npcs": [],
+            "puzzles": [
+                {
+                    "type": "Word Puzzle",
+                    "description": "Rearrange the following letters to form a meaningful word related to language: 'TICSGUILINS'",
+                    "solution": "Linguistics"
+                }
+            ],
+            "treasures": [
+                {
+                    "type": "scroll",
+                    "words": [
+                        {
+                            "word": "Etymology",
+                            "translation": "The study of the origin of words and the way in which their meanings have changed throughout history.",
+                            "usage_examples": [
+                                "The etymology of the word 'algorithm' is fascinating.",
+                                "Understanding etymology can help you remember new words."
+                            ]
+                        },
+                        {
+                            "word": "Morphology",
+                            "translation": "The study of the forms of words.",
+                            "usage_examples": [
+                                "Morphology examines how words are constructed from smaller units of meaning.",
+                                "English morphology is relatively simple compared to some other languages."
+                            ]
+                        }
+                    ],
+                    "description": "A faded scroll detailing the origins and structures of various words.",
+                    "is_final_goal": false,
+                    "linked_npc": "Echo Weaver"
+                }
+            ]
+        },
+        {
+            "id": "room8",
+            "name": "Forgotten Library",
+            "description": "Bookshelves stretch as far as the eye can see, filled with crumbling tomes in languages both known and unknown. The air is thick with the scent of aged paper and forgotten knowledge.",
+            "room_type": "normal",
+            "is_start": false,
+            "exits": [
+                {
+                    "target_room": "room7"
+                },
+                {
+                    "target_room": "room9"
+                }
+            ],
+            "npcs": [],
+            "puzzles": [],
+            "treasures": []
+        },
+        {
+            "id": "room9",
+            "name": "Grand Repository",
+            "description": "A vast chamber filled with stacks of books, scrolls, and tablets. In the center, a pedestal holds the Grand Lexicon, radiating an aura of corrupting power.",
+            "room_type": "normal",
+            "is_start": false,
+            "exits": [],
+            "npcs": [
+                {
+                    "name": "The Lexicographer",
+                    "appearance": "A wizened old man with ink-stained fingers, guarding the Grand Lexicon.",
+                    "type": "guardian",
+                    "behavior": "Hostile unless the challenge is completed.",
+                    "challenge": "Define the word 'ubiquitous' and use it correctly in a sentence."
+                }
+            ],
+            "puzzles": [],
+            "treasures": [
+                {
+                    "type": "artifact",
+                    "name": "Grand Lexicon",
+                    "description": "A massive dictionary bound in human skin, its pages filled with corrupted definitions that twist the meaning of every word.",
+                    "is_final_goal": true
+                }
+            ]
+        },
+        {
+            "id": "room10",
+            "name": "Quiet Alcove",
+            "description": "A small, seemingly peaceful alcove. The silence is deafening.",
+            "room_type": "trap",
+            "is_start": false,
+            "exits": [],
+            "npcs": [],
+            "puzzles": [],
+            "death_description": "The silence intensifies, becoming a crushing weight that suffocates you. Your thoughts fade away into nothingness."
+        },
+        {
+            "id": "room11",
+            "name": "Hall of Silent Vowels",
+            "description": "An unnerving silence pervades the room. All sound seems to be absorbed by the walls, leaving only a deafening stillness.",
+            "room_type": "trap",
+            "is_start": false,
+            "exits": [],
+            "npcs": [],
+            "puzzles": [],
+            "death_description": "The vowels vanish from your throat, leaving you unable to scream as the walls slowly close in."
+        },
+        {
+            "id": "room12",
+            "name": "Forgotten Library",
+            "description": "Bookshelves stretch as far as the eye can see, filled with crumbling tomes in languages both known and unknown. The air is thick with the scent of aged paper and forgotten knowledge.",
+            "room_type": "trap",
+            "is_start": false,
+            "exits": [],
+            "npcs": [],
+            "puzzles": [],
+            "death_description": "The books animate, their pages turning into razor-sharp blades that shred you to pieces."
+        },
+        {
+            "id": "room13",
+            "name": "Secret Chamber of Echoes",
+            "description": "The walls resonate with the echoes of forgotten voices. A sense of unease settles over you.",
+            "room_type": "trap",
+            "is_start": false,
+            "exits": [],
+            "npcs": [],
+            "puzzles": [],
+            "death_description": "The echoes intensify, becoming a cacophony of maddening whispers that drive you insane. Your mind shatters into a million pieces."
+        }
+    ]
+}
