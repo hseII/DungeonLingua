@@ -105,6 +105,20 @@ whisper_model = whisper.load_model("base", download_root=root_save)
 # whisper_model = None
 print("end load audio model")
 gemini_model = genai.GenerativeModel('gemini-2.0-pro-exp')  # gemma-3-27b-it gemini-2.0-pro-exp
+prompt_puzzle = PromptTemplate(
+    input_variables=["desc", "true_answer", "user_input"],
+    template="""
+    Determine whether the user's answer correctly solves the puzzle. 
+    The answer doesn't need to be letter-perfect but should be semantically correct (e.g., a synonym or logically equivalent formulation).
+    
+    Puzzle description: {desc}
+    Correct answer: {true_answer}
+    User's answer: {user_input}
+    
+    You must respond strictly with either "YES" or "NO" (WITHOUT QUOTES OR EXPLANATIONS) ONLY ONE WORD.
+    Answer:
+"""
+)
 prompt_template_guardian = PromptTemplate(
     input_variables=["name", "appearance", "behavior", "challenge"],
     template="""

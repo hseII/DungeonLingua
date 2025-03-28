@@ -1,4 +1,6 @@
 import streamlit as st
+from screens.my.character import prompt_puzzle, gemini_model
+from screens.my.api_key import gemini_key
 
 
 # def check_npc_condition(current_room):
@@ -16,6 +18,12 @@ def check_puzzle_condition(condition: str) -> bool:
         puzzle_name = condition.split("'")[1]
         return puzzle_name in st.session_state.get('solved_puzzles', [])
     return True  # Condition doesn't require puzzle solution
+
+
+def check_puzzle_llm(user_answer, true_answer, desc):
+    full_prompt = prompt_puzzle.format(user_input=user_answer, true_answer=true_answer, desc=desc)
+    response = gemini_model.generate_content(full_prompt).text
+    return "yes" in response.lower()
 
 
 def render_puzzles(current_room: dict):
@@ -38,7 +46,9 @@ def render_puzzles(current_room: dict):
 
             # Verification button
             if st.button("Test Thy Wit", key=f"check_{puzzle['type']}"):
-                if answer.strip().lower() == puzzle['solution'].lower():
+                if answer.strip().lower() == puzzle['solution'].lower() or check_puzzle_llm(
+                        user_answer=answer.strip().lower(), desc=puzzle['description'],
+                        true_answer=puzzle['solution'].lower()):
                     st.success("Correct! The stars align!")
 
                     # Add to solved puzzles

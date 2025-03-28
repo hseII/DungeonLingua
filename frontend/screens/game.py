@@ -9,7 +9,6 @@ import subprocess
 from screens.npc import reset_npc_states
 
 
-
 # Добавить новую функцию для рендера сокровищ
 def render_treasures(current_room):
     """Рендерит сокровища комнаты"""
@@ -33,6 +32,7 @@ def render_treasures(current_room):
             # Создаем кнопку с явным ключом
             if st.button(f" {treasure['name']}", key=btn_key):
                 show_artifact_dialog()
+
 
 def handle_room_transition(target_room_id, dungeon_data):
     """Обрабатывает переход между комнатами"""
@@ -68,7 +68,7 @@ def render_unlocked_doors(current_room_id, dungeon_data):
 
 
 def render_room_exits(current_room, dungeon_data):
-    """Рендерит выходы из текущей комнаты"""
+    """Рендерит выходы из текущей комнаты с фиксированным переносом каждые 4 кнопки"""
     exits = current_room.get('exits', [])
     if not exits:
         return
@@ -77,36 +77,99 @@ def render_room_exits(current_room, dungeon_data):
     if current_room.get('npcs'):
         st.markdown("**A dungeon dweller will show you the way.**", unsafe_allow_html=True)
     else:
-        cols = st.columns(len(exits))
-        for idx, (col, exit_data) in enumerate(zip(cols, exits)):
-            with col:
+        # Параметры отображения
+        BUTTONS_PER_ROW = 4
+        BUTTON_WIDTH = "120px"
+        BUTTON_HEIGHT = "80px"
+        GAP = "10px"
+
+        # CSS стили для grid-контейнера
+        st.markdown(f"""
+        <style>
+            .exits-grid-container {{
+                display: grid !important;
+                grid-template-columns: repeat({BUTTONS_PER_ROW}, {BUTTON_WIDTH}) !important;
+                gap: {GAP};
+                margin-bottom: 15px;
+            }}
+            .grid-exit-btn {{
+                width: {BUTTON_WIDTH};
+                height: {BUTTON_HEIGHT};
+                border: 3px solid #FF0000;
+                background: #000;
+                color: #FF0000;
+                font-family: 'Press Start 2P', cursive;
+                font-size: 0.7rem;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                text-align: center;
+                padding: 5px;
+                word-break: break-word;
+                white-space: normal;
+            }}
+            .grid-exit-btn:hover {{
+                box-shadow: 0 0 15px #FFD700;
+            }}
+            .grid-unknown-exit {{
+                width: {BUTTON_WIDTH};
+                height: {BUTTON_HEIGHT};
+                border: 3px solid #4B0082;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }}
+            @media (max-width: 768px) {{
+                .exits-grid-container {{
+                    grid-template-columns: repeat(2, {BUTTON_WIDTH});
+                }}
+                .grid-exit-btn, .grid-unknown-exit {{
+                    font-size: 0.6rem;
+                    height: 70px;
+                }}
+            }}
+            @media (max-width: 480px) {{
+                .exits-grid-container {{
+                    grid-template-columns: 1fr;
+                }}
+                .grid-exit-btn, .grid-unknown-exit {{
+                    width: 100%;
+                }}
+            }}
+        </style>
+        """, unsafe_allow_html=True)
+
+        # Создаем grid-контейнер
+        container = st.container()
+        with container:
+            st.markdown('<div class="exits-grid-container">', unsafe_allow_html=True)
+
+            for exit_data in exits:
                 target_room_id = exit_data['target_room']
                 target_room = find_room_by_id(dungeon_data, target_room_id)
                 exit_condition = exit_data.get('unlock_condition', '')
                 puzzle_met = check_puzzle_condition(exit_condition)
-
                 is_visited = target_room_id in st.session_state.visited_rooms
 
                 if puzzle_met or is_visited:
-                    col.markdown("<div class='exit-button-container'>", unsafe_allow_html=True)
-                    if col.button(target_room['name'], key=f"exit_{idx}"):
-                        handle_room_transition(target_room_id, dungeon_data)
-                    col.markdown("</div>", unsafe_allow_html=True)
+                    st.markdown(
+                        f'<button class="grid-exit-btn" onclick="window.location.href=\'?exit_click={target_room_id}\'">{target_room["name"]}</button>',
+                        unsafe_allow_html=True
+                    )
                 else:
-                    col.markdown(f"""
-                        <div style='
-                            border: 3px solid #4B0082;
-                            width: 100px;
-                            height: 100px;
-                            margin: 0 auto;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                        '>
-                            <span style="color: #4B0082; font-size: 1.2rem;">???</span>
-                        </div>
-                        """, unsafe_allow_html=True)
+                    st.markdown(
+                        f'<div class="grid-unknown-exit"><span style="color: #4B0082;">???</span></div>',
+                        unsafe_allow_html=True
+                    )
 
+            st.markdown('</div>', unsafe_allow_html=True)
+
+        # Обработка кликов
+        if st.session_state.get('exit_click'):
+            handle_room_transition(st.session_state.exit_click, dungeon_data)
+            del st.session_state['exit_click']
+            st.rerun()
 
 def render_trap_room(current_room):
     """Рендерит комнату-ловушку"""
@@ -191,6 +254,7 @@ def check_ffmpeg():
             st.error("Требуется FFmpeg! Инструкции в README.md")
             st.stop()
 
+
 def render():
     st.markdown(CSS_GAME, unsafe_allow_html=True)
 
@@ -233,6 +297,7 @@ def render():
     with st.sidebar:
         show_dungeon_map()
         render_word_dictionary()
+
 
 CSS_GAME = """
             <style>
@@ -419,5 +484,42 @@ CSS_GAME = """
                 width: 100% !important;
                 max-width: 300px !important;
             }
+        /* Убираем стандартные отступы у кнопок */
+        .stButton > button {
+            margin: 0 !important;
+        }
+        /* Адаптация грид-сетки для мобильных */
+        @media (max-width: 480px) {
+            .exits-grid {
+                grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)) !important;
+                gap: 8px !important;
+            }
+            .exit-button {
+                height: 60px !important;
+            }
+            .exit-button p {
+                font-size: 0.5rem !important;
+            }
+        }
+        
+        /* Дополнительные стили для контейнера */
+        div[data-testid="stVerticalBlock"] {
+            display: grid !important
+            grid-template-columns: repeat(3, 1fr) !important;
+            width: 100% !important;
+            flex: 1 1 auto; 
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        @media (min-width: 992px) {
+        .st-emotion-cache-ocqkz7 {
+          display: grid !important;
+          grid-template-columns: repeat(3, 1fr) !important;
+          gap: 1rem !important;
+          flex-wrap: initial !important; /* отключаем flex-wrap */
+          flex-grow: initial !important; /* отключаем flex-grow */
+          align-items: initial !important; /* отключаем align-items */
+        }
+        }
             </style>
             """
