@@ -12,6 +12,7 @@ from streamlit import runtime
 from streamlit.components.v1 import html
 from streamlit.web.server.websocket_headers import _get_websocket_headers
 
+
 def detect_mobile():
     headers = st.context.headers
     user_agent = headers.get("User-Agent", "").lower()
@@ -25,6 +26,14 @@ def detect_mobile():
     # Проверяем User-Agent
     return any(re.search(keyword, user_agent) for keyword in mobile_keywords)
     # return False
+
+
+def generate(file, language_focus, difficulty_level):
+    generated_json = generate_and_validate_dungeon_EN(language_focus=language_focus,
+                                                      difficulty_level=difficulty_level,
+                                                      api_key_gemini_layout=api_key_gemini_layout)
+    print(generated_json)
+    generate_npc_avatars(json_file_path=file, api_key_pixellab=api_key_pixellab)
 
 
 def render():
@@ -74,22 +83,19 @@ def render():
         try:
             if len(language_focus) < 2:
                 language_focus = "grammar"
-            # with open(ROOT_LOG, "w") as f:
-            #     headers = ["text"]
-            #     writer = csv.writer(f)
-            #     writer.writerow(headers)
-            # generated_json = generate_and_validate_dungeon_EN(language_focus=language_focus, difficulty_level=difficulty_level, api_key_gemini_layout=api_key_gemini_layout)
-            # print(generated_json)
+            start = time.time()
+
             # file = "data/dungeon_of_lingua.json"
             file = "data/dungeon_of_lingua_checked.json"
             dungeon_data = load_and_validate(file)
+            # generate(file=file, language_focus=language_focus, difficulty_level=difficulty_level)
             print("GOOD VALIDATION!!!")
-            # generate_npc_avatars(json_file_path=file, api_key_pixellab=api_key_pixellab)
             st.session_state.player_preferences = {
                 "language_focus": language_focus,
                 "difficulty_level": difficulty_level
             }
-
+            end = time.time()
+            print("all time:", end - start)
             start_room = find_room_by_id(dungeon_data, dungeon_data["starting_room"])
 
             st.session_state.update({

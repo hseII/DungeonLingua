@@ -8,15 +8,6 @@ import tempfile
 import csv
 import os
 
-# ======================
-# Constants and CSS
-# ======================
-
-
-
-# ======================
-# Helper Functions
-# ======================
 def get_npc_key(npc: dict, suffix: str) -> str:
     """Generate unique state key for NPC"""
     return f"npc_{npc['name']}_{suffix}"
@@ -39,10 +30,11 @@ def reset_npc_states(npc_name: str) -> None:
 
 
 def log_user_text(root: str, text: str) -> None:
-    """Log user text to CSV file"""
-    with open(root, 'a') as f:
-        writer = csv.writer(f, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-        writer.writerow([text])
+    """Log user text to CSV file and session state"""
+    # Сохраняем в session_state
+    if 'user_text_log' not in st.session_state:
+        st.session_state.user_text_log = []
+    st.session_state.user_text_log.append(text)
 
 
 # ======================
