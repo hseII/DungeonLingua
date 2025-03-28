@@ -11,96 +11,7 @@ import os
 # ======================
 # Constants and CSS
 # ======================
-CSS_STYLES = """
-<style>
-    @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
-    * {
-        font-family: 'Press Start 2P', cursive !important;
-        image-rendering: pixelated;
-        color: #FFFFFF !important;
-        background-color: #000000 !important;
-    }
-
-    h1, h2, h3, h4, h5, h6 {
-        color: #9229ea !important;
-        text-shadow: 2px 2px #510e8a !important;
-    }
-
-    .stApp, .stSidebar, .stAlert {
-        background-color: #000000 !important;
-    }
-
-    .stButton > button {
-        all: unset !important;
-        width: 100% !important;
-        min-width: 240px !important;
-        height: 40px !important;
-        margin: 10px 0 !important;
-        display: flex !important;
-        align-items: center;
-        justify-content: center!important;
-        border: 3px solid  #9229ea !important;
-        color: #9229ea!important;
-        font-size: 0.8rem !important;
-        cursor: pointer;
-        transition: all 0.3s !important;
-        text-align: center!importantr;
-        padding-top: 15px !important;
-        position: fixed;
-        overflow: visible !important;
-    }
-
-    @keyframes red-glow {
-        from {
-            box-shadow: 0 0 5px #ff0000, 0 0 10px #ff0000;
-        }
-        to {
-            box-shadow: 0 0 20px #ff0000, 0 0 40px #ff0000;
-        }
-    }
-    .stButton > button:hover {
-        animation: red-glow 0.8s ease-in-out infinite alternate;
-        z-index: 1000;
-    }
-
-    .door-button {
-        border-color: #9229ea !important;
-        color: #9229ea !important;
-    }
-
-    button[key="return_button"] {
-        border-color: #FFD700 !important !important;
-    }
-
-    div[data-testid="stAudioInput"] button {
-        background-color: #9229ea !important;
-        border: 2px solid #FFD700 !important;
-        border-radius: 50% !important;
-        width: 40px !important;
-        height: 40px !important;
-    }
-
-    div[data-testid="stAudioInput"] label {
-        color: #FFD700 !important;
-        font-size: 0.8rem !important;
-    }
-
-    .chat-bubble {
-        padding: 15px;
-        margin: 10px 0;
-        border-radius: 8px;
-        border: 2px solid #FFD700;
-        background-color: #1a1a1a;
-    }
-
-    .avatar-container {
-        z-index: 1000;
-        position: relative;
-        text-align: center;
-    }
-</style>
-"""
 
 
 # ======================
@@ -155,6 +66,8 @@ def initialize_npc_states(npc: dict) -> None:
     # Initialize patience for Conversational NPC
     if npc['type'].lower() == "conversational" and not st.session_state.get(npc_key('patience')):
         st.session_state[npc_key('patience')] = npc.get('patience', 3)
+    if 'player_stats' not in st.session_state:
+        st.session_state.player_stats = {}
 
 
 def create_npc_character(npc: dict) -> Character:
@@ -234,7 +147,7 @@ def process_audio_input(audio_bytes: bytes, npc: dict, current_room: dict) -> No
         transcript=recognized_text,
         path=temp_file_path
     )
-
+    st.session_state.player_stats['speaking_rate'] = speed_sp
     log_user_text(text=recognized_text, root=ROOT_LOG)
     st.session_state[npc_key('chat_history')].append({'type': 'player', 'text': recognized_text})
 
@@ -363,3 +276,94 @@ def render_npc_page(npc: dict, current_room: dict) -> None:
             st.session_state.selected_npc = None
             st.session_state.current_screen = "game"
             st.rerun()
+
+CSS_STYLES = """
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+    * {
+        font-family: 'Press Start 2P', cursive !important;
+        image-rendering: pixelated;
+        color: #FFFFFF !important;
+        background-color: #000000 !important;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        color: #9229ea !important;
+        text-shadow: 2px 2px #510e8a !important;
+    }
+
+    .stApp, .stSidebar, .stAlert {
+        background-color: #000000 !important;
+    }
+
+    .stButton > button {
+        all: unset !important;
+        width: 100% !important;
+        min-width: 240px !important;
+        height: 40px !important;
+        margin: 10px 0 !important;
+        display: flex !important;
+        align-items: center;
+        justify-content: center!important;
+        border: 3px solid  #9229ea !important;
+        color: #9229ea!important;
+        font-size: 0.8rem !important;
+        cursor: pointer;
+        transition: all 0.3s !important;
+        text-align: center!importantr;
+        padding-top: 15px !important;
+        position: fixed;
+        overflow: visible !important;
+    }
+
+    @keyframes red-glow {
+        from {
+            box-shadow: 0 0 5px #ff0000, 0 0 10px #ff0000;
+        }
+        to {
+            box-shadow: 0 0 20px #ff0000, 0 0 40px #ff0000;
+        }
+    }
+    .stButton > button:hover {
+        animation: red-glow 0.8s ease-in-out infinite alternate;
+        z-index: 1000;
+    }
+
+    .door-button {
+        border-color: #9229ea !important;
+        color: #9229ea !important;
+    }
+
+    button[key="return_button"] {
+        border-color: #FFD700 !important !important;
+    }
+
+    div[data-testid="stAudioInput"] button {
+        background-color: #9229ea !important;
+        border: 2px solid #FFD700 !important;
+        border-radius: 50% !important;
+        width: 40px !important;
+        height: 40px !important;
+    }
+
+    div[data-testid="stAudioInput"] label {
+        color: #FFD700 !important;
+        font-size: 0.8rem !important;
+    }
+
+    .chat-bubble {
+        padding: 15px;
+        margin: 10px 0;
+        border-radius: 8px;
+        border: 2px solid #FFD700;
+        background-color: #1a1a1a;
+    }
+
+    .avatar-container {
+        z-index: 1000;
+        position: relative;
+        text-align: center;
+    }
+</style>
+"""

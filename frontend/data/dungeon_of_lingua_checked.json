@@ -29,16 +29,17 @@
             "puzzles": []
         },
         {
-            "id": "room10",
+            "id": "room11",
             "name": "finish",
             "description": "finish",
-            "room_type": "normal",
+            "room_type": "trap",
             "is_start": true,
             "exits": [
                 {
                     "target_room": "room1"
                 }
             ],
+            "death_description": "You become lost in the labyrinthine texts, your mind slowly unraveling as you try to decipher the lies from the truth.",
             "npcs": [],
             "puzzles": []
         },

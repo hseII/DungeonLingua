@@ -10,3 +10,4 @@ frontend/screens/my/__pycache__/
 frontend/__pycache__/
 /roma/
 .env
+sc.py

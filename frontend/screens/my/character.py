@@ -99,12 +99,12 @@ class Character:
 
 
 genai.configure(api_key=gemini_key)
-root_save = 'screens/my/data/model/med.pt'
+root_save = 'screens/my/data/model/base.pt'
 print("start load audio model")
-# whisper_model = whisper.load_model("medium", download_root=root_save)
-whisper_model = None
+whisper_model = whisper.load_model("base", download_root=root_save)
+# whisper_model = None
 print("end load audio model")
-gemini_model = genai.GenerativeModel('gemini-2.0-pro-exp')
+gemini_model = genai.GenerativeModel('gemini-2.0-pro-exp')  # gemma-3-27b-it gemini-2.0-pro-exp
 prompt_template_guardian = PromptTemplate(
     input_variables=["name", "appearance", "behavior", "challenge"],
     template="""

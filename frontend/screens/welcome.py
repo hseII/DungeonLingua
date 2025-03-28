@@ -6,10 +6,109 @@ from screens.generate_layout_EN import generate_and_validate_dungeon_EN
 from constants import ROOT_LOG
 from screens.generate_images import generate_npc_avatars
 import csv
+from streamlit.runtime.scriptrunner import get_script_run_ctx
+import re
+from streamlit import runtime
+from streamlit.components.v1 import html
+from streamlit.web.server.websocket_headers import _get_websocket_headers
+
+def detect_mobile():
+    headers = st.context.headers
+    user_agent = headers.get("User-Agent", "").lower()
+
+    # Список мобильных идентификаторов
+    mobile_keywords = [
+        'mobile', 'android', 'iphone', 'ipod',
+        'windows phone', 'blackberry', 'opera mini'
+    ]
+    print(user_agent)
+    # Проверяем User-Agent
+    return any(re.search(keyword, user_agent) for keyword in mobile_keywords)
+    # return False
 
 
 def render():
-    st.markdown("""
+    st.markdown(CSS_RENDER, unsafe_allow_html=True)
+    if 'is_mobile' not in st.session_state:
+        st.session_state.is_mobile = detect_mobile()
+    print("mobile check", st.session_state.is_mobile)
+    # Основной контент
+    st.markdown('<h1 class="main-title">DUNGEON OF LINGUA</h1>', unsafe_allow_html=True)
+    # st.session_state.is_mobile = True
+
+    # Блок настроек
+    with st.form("player_settings"):
+        st.markdown('<div class="player-settings-form">', unsafe_allow_html=True)
+
+        col1, col2 = st.columns(2)
+        with col1:
+            # Текстовый ввод вместо выпадающего списка
+            language_focus = st.text_input(
+                "LANGUAGE FOCUS",
+                value="",
+                max_chars=20
+            )
+        with col2:
+            difficulty_level = st.selectbox("DIFFICULTY LEVEL", options=["A", "B", "C"], index=1)
+
+        st.markdown('<div style="margin: 2rem 0;"></div>', unsafe_allow_html=True)
+
+        _, center_col, _ = st.columns([2, 1, 2])
+        with center_col:
+            st.markdown('<div style="height: 600px; width= 600px;">', unsafe_allow_html=True)
+            start_button = st.form_submit_button("START QUEST")
+            st.markdown('</div>', unsafe_allow_html=True)
+
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    # Обработка загрузки
+    if start_button:
+        loading_html = """
+        <div class="loading-container">
+            <div class="pixel-spinner"></div>
+            <div class="loading-text">>> GENERATING DUNGEON...</div>
+        </div>
+        """
+        st.markdown(loading_html, unsafe_allow_html=True)
+
+        try:
+            if len(language_focus) < 2:
+                language_focus = "grammar"
+            # with open(ROOT_LOG, "w") as f:
+            #     headers = ["text"]
+            #     writer = csv.writer(f)
+            #     writer.writerow(headers)
+            # generated_json = generate_and_validate_dungeon_EN(language_focus=language_focus, difficulty_level=difficulty_level, api_key_gemini_layout=api_key_gemini_layout)
+            # print(generated_json)
+            # file = "data/dungeon_of_lingua.json"
+            file = "data/dungeon_of_lingua_checked.json"
+            dungeon_data = load_and_validate(file)
+            print("GOOD VALIDATION!!!")
+            # generate_npc_avatars(json_file_path=file, api_key_pixellab=api_key_pixellab)
+            st.session_state.player_preferences = {
+                "language_focus": language_focus,
+                "difficulty_level": difficulty_level
+            }
+
+            start_room = find_room_by_id(dungeon_data, dungeon_data["starting_room"])
+
+            st.session_state.update({
+                "dungeon_data": dungeon_data,
+                "current_screen": "game",
+                "current_room_id": start_room["id"],
+                "visited_rooms": [start_room["id"]],
+                "is_alive": True
+            })
+
+            # Искусственная задержка для демонстрации анимации
+            time.sleep(2)
+            st.rerun()
+
+        except Exception as e:
+            st.error(f"ERROR: {str(e)}")
+
+
+CSS_RENDER = """
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
@@ -155,80 +254,4 @@ def render():
         background: #000 !important;
     }
     </style>
-    """, unsafe_allow_html=True)
-
-    # Основной контент
-    st.markdown('<h1 class="main-title">DUNGEON OF LINGUA</h1>', unsafe_allow_html=True)
-
-    # Блок настроек
-    with st.form("player_settings"):
-        st.markdown('<div class="player-settings-form">', unsafe_allow_html=True)
-
-        col1, col2 = st.columns(2)
-        with col1:
-            # Текстовый ввод вместо выпадающего списка
-            language_focus = st.text_input(
-                "LANGUAGE FOCUS",
-                value="",
-                max_chars=20
-            )
-        with col2:
-            difficulty_level = st.selectbox("DIFFICULTY LEVEL", options=["A", "B", "C"], index=1)
-
-        st.markdown('<div style="margin: 2rem 0;"></div>', unsafe_allow_html=True)
-
-        _, center_col, _ = st.columns([2, 1, 2])
-        with center_col:
-            st.markdown('<div style="height: 600px; width= 600px;">', unsafe_allow_html=True)
-            start_button = st.form_submit_button("START QUEST")
-            st.markdown('</div>', unsafe_allow_html=True)
-
-        st.markdown('</div>', unsafe_allow_html=True)
-
-    # Обработка загрузки
-    if start_button:
-        loading_html = """
-        <div class="loading-container">
-            <div class="pixel-spinner"></div>
-            <div class="loading-text">>> GENERATING DUNGEON...</div>
-        </div>
-        """
-        st.markdown(loading_html, unsafe_allow_html=True)
-
-        try:
-            # Ваша логика загрузки
-            if len(language_focus) < 2:
-                language_focus = "grammar"
-            with open(ROOT_LOG, "w") as f:
-                headers = ["text"]
-                writer = csv.writer(f)
-                writer.writerow(headers)
-            print(language_focus, difficulty_level, api_key_gemini_layout)
-            # generated_json = generate_and_validate_dungeon_EN(language_focus=language_focus, difficulty_level=difficulty_level, api_key_gemini_layout=api_key_gemini_layout)
-            # print(generated_json)
-            # file = "data/dungeon_of_lingua.json"
-            file = "data/dungeon_of_lingua_checked.json"
-            dungeon_data = load_and_validate(file)
-            print("GOOD VALIDATION!!!")
-            # generate_npc_avatars(json_file_path=file, api_key_pixellab=api_key_pixellab)
-            st.session_state.player_preferences = {
-                "language_focus": language_focus,
-                "difficulty_level": difficulty_level
-            }
-
-            start_room = find_room_by_id(dungeon_data, dungeon_data["starting_room"])
-
-            st.session_state.update({
-                "dungeon_data": dungeon_data,
-                "current_screen": "game",
-                "current_room_id": start_room["id"],
-                "visited_rooms": [start_room["id"]],
-                "is_alive": True
-            })
-
-            # Искусственная задержка для демонстрации анимации
-            time.sleep(2)
-            st.rerun()
-
-        except Exception as e:
-            st.error(f"ERROR: {str(e)}")
+    """
