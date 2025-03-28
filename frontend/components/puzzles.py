@@ -1,14 +1,29 @@
 import streamlit as st
 
 
-# def check_npc_condition(current_room):
-#     if 'npcs' not in current_room:
-#         return True
-#
-#     for npc in current_room['npcs']:
-#         if not st.session_state.get(f"npc_{npc['name']}_completed", False):
-#             return False
-#     return True
+def get_localized_text(key):
+    """Локализация для головоломок"""
+    current_language = st.session_state.get("selected_language", "en")
+
+    localized_texts = {
+        "en": {
+            "reveal_challenge": "Reveal the Challenge",
+            "enter_answer": "Enter thy answer:",
+            "test_wit": "Test Thy Wit",
+            "correct_answer": "Correct! The stars align!",
+            "wrong_answer": "Nay! Try once more, traveler.",
+            "word_added": "Word added to thy lexicon: {word}"
+        },
+        "de": {
+            "reveal_challenge": "Enthülle die Prüfung",
+            "enter_answer": "Ritze Deine Antwort:",
+            "test_wit": "Prüfe Deinen Scharfsinn",
+            "correct_answer": "Richtig! Die Sterne fügen sich!",
+            "wrong_answer": "Fehlgeschlagen! Versuch's erneut, Wanderer.",
+            "word_added": "Wort dem Kodex hinzugefügt: {word}"
+        }
+    }
+    return localized_texts[current_language].get(key, key)
 
 def check_puzzle_condition(condition: str) -> bool:
     """Checks conditions related to puzzle solutions"""
@@ -30,16 +45,19 @@ def render_puzzles(current_room: dict):
             unsafe_allow_html=True
         )
 
-        with st.expander("Reveal the Challenge"):
+        with st.expander(get_localized_text("reveal_challenge")):
             st.markdown(f"**{puzzle['description']}**")
 
             # Answer input with medieval flair
-            answer = st.text_input("Enter thy answer:", key=f"puzzle_{puzzle['type']}")
+            answer = st.text_input(
+                get_localized_text("enter_answer"),
+                key=f"puzzle_{puzzle['type']}"
+            )
 
             # Verification button
-            if st.button("Test Thy Wit", key=f"check_{puzzle['type']}"):
+            if st.button(get_localized_text("test_wit"), key=f"check_{puzzle['type']}"):
                 if answer.strip().lower() == puzzle['solution'].lower():
-                    st.success("Correct! The stars align!")
+                    st.success(get_localized_text("correct_answer"))
 
                     # Add to solved puzzles
                     if puzzle['type'] not in st.session_state.solved_puzzles:
@@ -58,8 +76,9 @@ def render_puzzles(current_room: dict):
                                         'translation': word_data['translation'],
                                         'usage_examples': word_data['usage_examples']
                                     }
-                                    st.success(f"Word added to thy lexicon: {word}")
+                                    st.success(
+                                        get_localized_text("word_added").format(word=word))
 
                     st.rerun()
                 else:
-                    st.error("Nay! Try once more, traveler.")
+                    st.error(get_localized_text("wrong_answer"))

@@ -9,6 +9,42 @@ import subprocess
 from screens.npc import reset_npc_states
 
 
+def get_localized_text(key):
+    """Возвращает локализованный текст по ключу"""
+    current_language = st.session_state.get("selected_language", "en")
+
+    localized_texts = {
+        "en": {
+            "discovered_treasures": "Discovered Treasures",
+            "artifact_found": "Rejoice, brave soul! The Arcane Artifact of Escapement is yours!",
+            "go_to_review": "Present to Royal Scribe",
+            "unlocked_paths": "Unlocked Paths",
+            "dungeon_dweller_way": "A dungeon dweller will show you the way.",
+            "scribes_scroll": "Scribe's Scroll",
+            "main_menu_tooltip": "Main Menu",
+            "chatter_mead": "Chatter Mead",
+            "loading_error": "Alas! The dungeon scrolls are unreadable!",
+            "death_description": "Thy recklessness hath summoned the Reaper's embrace!",
+            "report_button": "Inscribe thy Testament",
+            "trap_escape": "Beg scribe's mercy",
+        },
+        "de": {
+            "discovered_treasures": "Entdeckte Schätze",
+            "artifact_found": "Ruhm und Ehre! Das Artefakt der Entfliehkunst ist Euer!",
+            "go_to_review": "Zum Hofschreiber",
+            "unlocked_paths": "Freigeschaltete Pfade",
+            "dungeon_dweller_way": "Ein Höhlenkundiger wird Euch führen.",
+            "scribes_scroll": "Schreiberrolle",
+            "main_menu_tooltip": "Hauptmenü",
+            "chatter_mead": "Schwatzmet",
+            "loading_error": "Die Dungeon-Karten sind unleserlich!",
+            "death_description": "Euer Leichtsinn rief des Sensenmanns Kuss!",
+            "report_button": "Verfasse Testament",
+            "trap_escape": "Um Schreibergnade flehen",
+        }
+    }
+
+    return localized_texts[current_language].get(key, key)
 
 # Добавить новую функцию для рендера сокровищ
 def render_treasures(current_room):
@@ -16,18 +52,17 @@ def render_treasures(current_room):
     if not current_room.get('treasures'):
         return
 
-    st.markdown("---")
-    st.markdown("### Discovered Treasures")
-
-    @st.dialog("Artifact Found!", width="large")
+    @st.dialog(get_localized_text('artifact_found'), width="large")
     def show_artifact_dialog():
-        st.markdown("Congratulations! You've found the artifact that allows you to escape the dungeon.")
-        if st.button("Go to review"):
+        st.markdown(get_localized_text('artifact_found'))
+        if st.button(get_localized_text('go_to_review')):
             st.session_state.current_screen = "report"
             st.rerun()
 
     for treasure in current_room['treasures']:
         if treasure.get('is_final_goal') and treasure['type'] == "artifact":
+            st.markdown("---")
+            st.markdown(f"### {get_localized_text('discovered_treasures')}")
             btn_key = f"artifact_{treasure['name'].lower().replace(' ', '_')}"
 
             # Создаем кнопку с явным ключом
@@ -54,7 +89,7 @@ def render_unlocked_doors(current_room_id, dungeon_data):
 
     if unlocked_doors:
         st.markdown("---")
-        st.markdown("### Unlocked Paths")
+        st.markdown(f"### {get_localized_text('unlocked_paths')}")
         cols = st.columns(len(unlocked_doors))
 
         for idx, room_id in enumerate(unlocked_doors):
@@ -75,7 +110,7 @@ def render_room_exits(current_room, dungeon_data):
 
     st.markdown("---")
     if current_room.get('npcs'):
-        st.markdown("**A dungeon dweller will show you the way.**", unsafe_allow_html=True)
+        st.markdown(f"**{get_localized_text('dungeon_dweller_way')}**", unsafe_allow_html=True)
     else:
         cols = st.columns(len(exits))
         for idx, (col, exit_data) in enumerate(zip(cols, exits)):
@@ -113,8 +148,8 @@ def render_trap_room(current_room):
     st.markdown('<div class="main-content">', unsafe_allow_html=True)
     st.markdown(f"### {current_room['name']}")
     st.markdown(f"*{current_room['description']}*")
-    st.error(current_room.get("death_description", "Вы попали в смертельную ловушку!"))
-    if st.button("Scribe's Scroll", key="to_report"):
+    st.error(current_room.get("death_description", get_localized_text('death_description')))
+    if st.button(get_localized_text('trap_escape'), key="to_report"):
         st.session_state.current_screen = "report"
         st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
@@ -147,7 +182,7 @@ def render_header(current_room):
     """Рендерит верхнюю панель с кнопками"""
     header_cols = st.columns([0.1, 0.7, 0.2])
     with header_cols[0]:
-        if st.button("◄", help="Главное меню", key="main_menu"):
+        if st.button("◄", help=get_localized_text('main_menu_tooltip'), key="main_menu"):
             st.session_state.clear()
             st.session_state.current_screen = "welcome"
             st.rerun()
@@ -158,7 +193,9 @@ def render_header(current_room):
             npc_cols = st.columns(len(current_room['npcs']))
             for idx, npc in enumerate(current_room['npcs']):
                 with st.container():
-                    if st.button(f"Chatter Mead", key=f"npc_{npc['name']}"):
+                    if st.button(
+                            get_localized_text("chatter_mead"),  # Используем единый ключ
+                            key=f"npc_{npc['name']}"):
                         st.session_state.selected_npc = npc
                         st.session_state.current_screen = "npc"
                         st.rerun()
