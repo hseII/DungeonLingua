@@ -9,6 +9,40 @@ import csv
 import os
 
 
+def get_localized_text(key):
+    """Локализация текста для NPC"""
+    current_language = st.session_state.get("selected_language", "en")
+
+    localized_texts = {
+        "en": {
+            "speak_stranger": "Speak, Stranger",
+            "record_help": "Press and hold to parley",
+            "message_input": "Inscribe thy words:",
+            "send_button": "Dispatch",
+            "start_dialog": "Commence Parlay",
+            "back_to_room": "Retreat to Chamber",
+            "dialog_title": "Court of Words",
+            "patience_remaining": "Mercy remaining:",
+            "npc_disappear": "The figure melts into shadows... No aid shall come.",
+            "return_button": "Flee this Discourse",
+            "npc_image_error": "Alas! The visage scroll is missing!",
+        },
+        "de": {
+            "speak_stranger": "Sprich, Fremdling",
+            "record_help": "Halten zum Verhandeln",
+            "message_input": "Ritze Deine Worte:",
+            "send_button": "Entsenden",
+            "start_dialog": "Güldene Zunge",
+            "back_to_room": "Zurück zur Kammer",
+            "dialog_title": "Wortgefecht",
+            "patience_remaining": "Geduld schwindet:",
+            "npc_disappear": "Die Gestalt zerrinnt... Kein Beistand naht.",
+            "return_button": "Flieh dem Wortstreit",
+            "npc_image_error": "Das Antlitz-Pergament fehlt!",
+        }
+    }
+    return localized_texts[current_language].get(key, key)
+
 def get_npc_key(npc: dict, suffix: str) -> str:
     """Generate unique state key for NPC"""
     return f"npc_{npc['name']}_{suffix}"
@@ -105,21 +139,17 @@ def handle_successful_dialog(npc, current_room, is_success=True):
     """Обрабатывает завершение диалога, сохраняя открытые двери"""
     npc_key = lambda s: get_npc_key(npc, s)
 
-    # Уменьшаем терпение только для conversational NPC и только при неудачном ответе
-    if npc['type'].lower() == "conversational" and not is_success:
-        # Проверяем, что это не первый запрос
-        if len(st.session_state[npc_key('chat_history')]) > 1:
-            # Убедимся, что терпение не станет отрицательным
+    # Для conversational NPC обрабатываем терпение
+    if npc['type'].lower() == "conversational":
+        if not is_success:
             current_patience = st.session_state.get(npc_key('patience'), 0)
-            if current_patience > 0:
+            if current_patience > 0 and len(st.session_state[npc_key('chat_history')]) > 1:
                 st.session_state[npc_key('patience')] = current_patience - 1
-                print(f"Patience decreased to {st.session_state[npc_key('patience')]}")  # Для отладки
 
-            # Если терпение закончилось
-            if st.session_state[npc_key('patience')] <= 0:
+            if st.session_state.get(npc_key('patience'), 0) <= 0:
                 st.session_state[npc_key('dialog_completed')] = True
                 st.session_state[npc_key('success')] = False
-                return  # Прекращаем дальнейшую обработку
+                return
 
     st.session_state[npc_key('dialog_completed')] = True
     st.session_state[npc_key('success')] = is_success
@@ -127,20 +157,25 @@ def handle_successful_dialog(npc, current_room, is_success=True):
     current_room_id = current_room['id']
     target_rooms = []
 
-    if "guard" in npc['type'].lower():
-        # Для стража открываем все выходы из комнаты
-        exits = current_room.get('exits', [])
-        target_rooms = [exit['target_room'] for exit in exits]
-    else:
-        # Для собеседника в зависимости от успеха
-        target_rooms = [npc.get('information_to_share')] if is_success else npc.get('trap_rooms', [])
+    # Логика для guardian (только exits при успехе)
+    if "guard" in npc['type'].lower() and is_success:
+        target_rooms = [exit['target_room'] for exit in current_room.get('exits', [])]
 
-    if 'unlocked_doors' not in st.session_state:
-        st.session_state.unlocked_doors = {}
+    # Логика для conversational (exits + information_to_share при успехе / trap_rooms при неудаче)
+    elif npc['type'].lower() == "conversational":
+        if is_success:
+            # Добавляем стандартные exits
+            target_rooms = [exit['target_room'] for exit in current_room.get('exits', [])]
+            # Добавляем information_to_share, если он есть
+            if 'information_to_share' in npc:
+                target_rooms.append(npc['information_to_share'])
+        else:
+            target_rooms = npc.get('trap_rooms', [])
 
-    # Сохраняем открытые двери для текущей комнаты
-    st.session_state.setdefault('unlocked_doors', {})[current_room_id] = target_rooms
-
+    # Удаляем дубликаты и сохраняем
+    if target_rooms:
+        unique_rooms = list(set(target_rooms))  # На случай, если information_to_share совпадает с exit
+        st.session_state.setdefault('unlocked_doors', {})[current_room_id] = unique_rooms
 
 def process_audio_input(audio_bytes: bytes, npc: dict, current_room: dict) -> None:
     """Process audio input and generate NPC response"""
@@ -192,7 +227,7 @@ def render_npc_avatar(npc: dict) -> None:
     left_co, cent_co, last_co = st.columns(3)
     with cent_co:
         if not os.path.exists(avatar_image_path):
-            st.error(f"Изображение {avatar_image_path} не найдено!")
+            st.error(get_localized_text("npc_image_error"))
         else:
             st.image(avatar_image_path, width=250, caption="")
 
@@ -217,9 +252,9 @@ def render_dialog_controls(npc: dict, current_room: dict) -> None:
 
     # Audio input
     audio_bytes = st.audio_input(
-        label="Speak, Stranger",
+        label=get_localized_text("speak_stranger"),
         key=key_audio,
-        help="Нажмите и удерживайте для записи сообщения",
+        help=get_localized_text("record_help"),
         disabled=False
     )
 
@@ -228,8 +263,8 @@ def render_dialog_controls(npc: dict, current_room: dict) -> None:
         st.rerun()
 
     # Text input
-    user_input = st.text_input("Message:", key=npc_key('text_input'))
-    if st.button("Send"):
+    user_input = st.text_input(get_localized_text("message_input"), key=npc_key('text_input'))
+    if st.button(get_localized_text("send_button")):
         if user_input.strip():
             process_text_input(user_input, npc, current_room)
             st.rerun()
@@ -266,11 +301,11 @@ def render_npc_page(npc: dict, current_room: dict) -> None:
 
     # Render dialog start/back buttons if dialog not started
     if not st.session_state[npc_key('dialog_started')]:
-        if st.button("Start Dialog", use_container_width=True):
+        if st.button(get_localized_text("start_dialog"), use_container_width=True):
             st.session_state[npc_key('dialog_started')] = True
             st.rerun()
 
-        if st.button("Back to room", use_container_width=True):
+        if st.button(get_localized_text("back_to_room"), use_container_width=True):
             st.session_state.selected_npc = None
             st.session_state.current_screen = "game"
             st.rerun()
@@ -289,8 +324,8 @@ def render_npc_page(npc: dict, current_room: dict) -> None:
                 # Сохраняем начальное значение для возможного сброса
                 st.session_state[npc_key('initial_patience')] = initial_patience
             if st.session_state.get(npc_key('patience'), 0) <= 0:
-                st.error("The character silently disappears into the shadows... It seems you can't expect any help.")
-                if st.button("Return to Current Room", key=npc_key('return')):
+                st.error(get_localized_text("npc_disappear"))
+                if st.button(get_localized_text("return_button"), key=npc_key('return')):
                     st.session_state.selected_npc = None
                     st.session_state.current_screen = "game"
                     st.rerun()
@@ -298,13 +333,13 @@ def render_npc_page(npc: dict, current_room: dict) -> None:
             else:
                 # Показываем оставшееся терпение
                 patience = st.session_state[npc_key('patience')]
-                st.markdown(f"**Patience remaining:** {patience}", unsafe_allow_html=True)
+                st.markdown(f"**{get_localized_text('patience_remaining')}** {patience}", unsafe_allow_html=True)
 
         render_chat_history(npc)
         render_dialog_controls(npc, current_room)
 
         st.markdown("---")
-        if st.button("Return to Current Room", key=npc_key('return')):
+        if st.button(get_localized_text("return_button"), key=npc_key('return')):
             st.session_state.selected_npc = None
             st.session_state.current_screen = "game"
             st.rerun()

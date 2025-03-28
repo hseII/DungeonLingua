@@ -49,20 +49,23 @@ def render():
     with st.form("player_settings"):
         st.markdown('<div class="player-settings-form">', unsafe_allow_html=True)
 
+        # Измененная структура колонок
         col1, col2 = st.columns(2)
         with col1:
-            # Текстовый ввод вместо выпадающего списка
-            language_focus = st.text_input(
-                "LANGUAGE FOCUS",
-                value="",
-                max_chars=20
-            )
+            # Новый ряд внутри первой колонки
+            selected_language = st.selectbox("LANGUAGE", ["English", "Deutsch"])
+            st.session_state.selected_language = "en" if selected_language == "English" else "de"
+
         with col2:
-            difficulty_level = st.selectbox("DIFFICULTY LEVEL", options=["A", "B", "C"], index=1)
+            # Новый ряд внутри второй колонки
+            difficulty_level = st.selectbox("DIFFICULTY LEVEL", ["A", "B", "C"], index=1)
+            st.markdown('<div class="spacer"></div>', unsafe_allow_html=True)
 
-        st.markdown('<div style="margin: 2rem 0;"></div>', unsafe_allow_html=True)
+        _, center_col, _ = st.columns([100, 99, 100])
+        with center_col:
+            language_focus = st.text_input("LANGUAGE FOCUS", value="", max_chars=20)
 
-        _, center_col, _ = st.columns([2, 1, 2])
+        _, center_col, _ = st.columns([100, 99, 100])
         with center_col:
             st.markdown('<div style="height: 600px; width= 600px;">', unsafe_allow_html=True)
             start_button = st.form_submit_button("START QUEST")
@@ -91,6 +94,7 @@ def render():
             # generate(file=file, language_focus=language_focus, difficulty_level=difficulty_level)
             print("GOOD VALIDATION!!!")
             st.session_state.player_preferences = {
+                "language": selected_language,
                 "language_focus": language_focus,
                 "difficulty_level": difficulty_level
             }
@@ -156,7 +160,7 @@ CSS_RENDER = """
         50% { transform: translateY(-5px); }
         100% { transform: translateY(0px); }
     }
-    
+
      /* Фикс для кнопки */
     .stButton > button {
     width: 100px !important;
@@ -173,17 +177,17 @@ CSS_RENDER = """
     position: relative !important;
     overflow: hidden !important;
     }
-    
+
     .stButton > button:hover {
         transform: translate(2px, 2px) !important;
         box-shadow: 3px 3px 0px #8B0000 !important;
     }
-    
+
     .stButton > button:active {
         transform: translate(4px, 4px) !important;
         box-shadow: 1px 1px 0px #8B0000 !important;
     }
-    
+
     /* Стилизация выпадающих списков */
     .stSelectbox [data-testid="stSelectbox"] {
         border: 3px solid #000 !important;
@@ -261,3 +265,4 @@ CSS_RENDER = """
     }
     </style>
     """
+
