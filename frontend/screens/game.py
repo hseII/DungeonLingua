@@ -191,9 +191,50 @@ def check_ffmpeg():
             st.error("Требуется FFmpeg! Инструкции в README.md")
             st.stop()
 
-
 def render():
-    st.markdown("""
+    st.markdown(CSS_GAME, unsafe_allow_html=True)
+
+    if 'unlocked_doors' not in st.session_state:
+        st.session_state.unlocked_doors = {}
+
+    check_ffmpeg()
+
+    if not st.session_state.get('dungeon_data') or not st.session_state.get('current_room_id'):
+        st.error("Ошибка загрузки данных!")
+        st.session_state.current_screen = "welcome"
+        st.rerun()
+        return
+
+    current_room = find_room_by_id(st.session_state.dungeon_data, st.session_state.current_room_id)
+    st.session_state.current_room = current_room
+
+    # Сброс NPC при переходе
+    if not current_room.get('npcs'):
+        st.session_state.selected_npc = None
+
+    # Хедер
+    render_header(current_room)
+
+    if current_room.get("is_start") and not st.session_state.get("tutorial_shown"):
+        difficulty = st.session_state.player_preferences.get("difficulty_level", "B")
+        show_tutorial(difficulty)
+        st.session_state.tutorial_shown = True
+
+    initialize_session_state()
+
+    if st.session_state.current_screen == "npc" and st.session_state.selected_npc:
+        render_npc_page(st.session_state.selected_npc, current_room)
+    else:
+        if current_room["room_type"] == "trap":
+            render_trap_room(current_room)
+        else:
+            render_normal_room(current_room, st.session_state.dungeon_data)
+
+    with st.sidebar:
+        show_dungeon_map()
+        render_word_dictionary()
+
+CSS_GAME = """
             <style>
             @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
@@ -379,44 +420,4 @@ def render():
                 max-width: 300px !important;
             }
             </style>
-            """, unsafe_allow_html=True)
-
-    if 'unlocked_doors' not in st.session_state:
-        st.session_state.unlocked_doors = {}
-
-    check_ffmpeg()
-
-    if not st.session_state.get('dungeon_data') or not st.session_state.get('current_room_id'):
-        st.error("Ошибка загрузки данных!")
-        st.session_state.current_screen = "welcome"
-        st.rerun()
-        return
-
-    current_room = find_room_by_id(st.session_state.dungeon_data, st.session_state.current_room_id)
-    st.session_state.current_room = current_room
-
-    # Сброс NPC при переходе
-    if not current_room.get('npcs'):
-        st.session_state.selected_npc = None
-
-    # Хедер
-    render_header(current_room)
-
-    if current_room.get("is_start") and not st.session_state.get("tutorial_shown"):
-        difficulty = st.session_state.player_preferences.get("difficulty_level", "B")
-        show_tutorial(difficulty)
-        st.session_state.tutorial_shown = True
-
-    initialize_session_state()
-
-    if st.session_state.current_screen == "npc" and st.session_state.selected_npc:
-        render_npc_page(st.session_state.selected_npc, current_room)
-    else:
-        if current_room["room_type"] == "trap":
-            render_trap_room(current_room)
-        else:
-            render_normal_room(current_room, st.session_state.dungeon_data)
-
-    with st.sidebar:
-        show_dungeon_map()
-        render_word_dictionary()
+            """

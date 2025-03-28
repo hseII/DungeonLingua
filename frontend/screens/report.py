@@ -24,8 +24,6 @@ def analyze_text(text) -> dict:
     with open(WORDS_ROOT, "r") as f:
         reader = csv.DictReader(f)
         for row in reader:
-            if row['word'] == "in":
-                print(row['word'], row['level'])
             if word_level_dict[row['word']] in level_count:
                 if level_count.index(row['level']) < level_count.index(word_level_dict[row['word']]):
                     word_level_dict[row['word']] = row['level']

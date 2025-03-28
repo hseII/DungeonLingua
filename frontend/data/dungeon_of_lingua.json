@@ -294,10 +294,8 @@
                 },
                 {
                     "target_room": "room16"
-                },
-                {
-                    "target_room": "room17"
                 }
+
             ],
             "npcs": [
                 {
@@ -474,7 +472,7 @@
             "description": "A narrow corridor with spikes that shoot out from the walls.",
             "room_type": "trap",
             "is_start": false,
-            "exits": [],
+            "exits": [{"target_room": "room9"}],
             "npcs": [],
             "puzzles": [],
             "treasures": [],

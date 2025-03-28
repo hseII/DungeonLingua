@@ -8,6 +8,7 @@ import tempfile
 import csv
 import os
 
+
 def get_npc_key(npc: dict, suffix: str) -> str:
     """Generate unique state key for NPC"""
     return f"npc_{npc['name']}_{suffix}"
@@ -163,8 +164,8 @@ def process_audio_input(audio_bytes: bytes, npc: dict, current_room: dict) -> No
 
     npc_response, is_success = st.session_state[npc_key('character')].generate_response(recognized_text)
     st.session_state[npc_key('chat_history')].append({'type': 'npc', 'text': npc_response})
-
-    handle_successful_dialog(npc, current_room, is_success)
+    if is_success:
+        handle_successful_dialog(npc, current_room, is_success)
 
 
 def process_text_input(user_input: str, npc: dict, current_room: dict) -> None:
@@ -177,8 +178,8 @@ def process_text_input(user_input: str, npc: dict, current_room: dict) -> None:
     npc_response, is_success = st.session_state[npc_key('character')].generate_response(user_input)
     print("is_success: ", is_success)
     st.session_state[npc_key('chat_history')].append({'type': 'npc', 'text': npc_response})
-
-    handle_successful_dialog(npc, current_room, is_success)
+    if is_success:
+        handle_successful_dialog(npc, current_room, is_success)
 
 
 # ======================
@@ -238,6 +239,7 @@ def render_dialog_controls(npc: dict, current_room: dict) -> None:
 # Main Render Function
 # ======================
 def render_npc_page(npc: dict, current_room: dict) -> None:
+    handle_successful_dialog(npc, current_room)
     """Main function to render NPC page"""
     # Apply CSS styles
     st.markdown(CSS_STYLES, unsafe_allow_html=True)
@@ -306,6 +308,7 @@ def render_npc_page(npc: dict, current_room: dict) -> None:
             st.session_state.selected_npc = None
             st.session_state.current_screen = "game"
             st.rerun()
+
 
 CSS_STYLES = """
 <style>
