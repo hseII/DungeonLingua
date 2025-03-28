@@ -19,6 +19,7 @@ def reset_npc_states(npc_name: str) -> None:
         'dialog_started',
         'chat_history',
         'patience',
+        'initial_patience',
         'dialog_completed',
         'success',
         'character'
@@ -99,9 +100,25 @@ def create_npc_character(npc: dict) -> Character:
 # ======================
 # Dialog Handling
 # ======================
-def handle_successful_dialog(npc: dict, current_room: dict, is_success: bool = True) -> None:
-    """Handle dialog completion and update unlocked doors"""
+def handle_successful_dialog(npc, current_room, is_success=True):
+    """Обрабатывает завершение диалога, сохраняя открытые двери"""
     npc_key = lambda s: get_npc_key(npc, s)
+
+    # Уменьшаем терпение только для conversational NPC и только при неудачном ответе
+    if npc['type'].lower() == "conversational" and not is_success:
+        # Проверяем, что это не первый запрос
+        if len(st.session_state[npc_key('chat_history')]) > 1:
+            # Убедимся, что терпение не станет отрицательным
+            current_patience = st.session_state.get(npc_key('patience'), 0)
+            if current_patience > 0:
+                st.session_state[npc_key('patience')] = current_patience - 1
+                print(f"Patience decreased to {st.session_state[npc_key('patience')]}")  # Для отладки
+
+            # Если терпение закончилось
+            if st.session_state[npc_key('patience')] <= 0:
+                st.session_state[npc_key('dialog_completed')] = True
+                st.session_state[npc_key('success')] = False
+                return  # Прекращаем дальнейшую обработку
 
     st.session_state[npc_key('dialog_completed')] = True
     st.session_state[npc_key('success')] = is_success
@@ -110,16 +127,17 @@ def handle_successful_dialog(npc: dict, current_room: dict, is_success: bool = T
     target_rooms = []
 
     if "guard" in npc['type'].lower():
-        # For guards, open all room exits
+        # Для стража открываем все выходы из комнаты
         exits = current_room.get('exits', [])
         target_rooms = [exit['target_room'] for exit in exits]
     else:
-        # For conversational NPCs, handle based on success
+        # Для собеседника в зависимости от успеха
         target_rooms = [npc.get('information_to_share')] if is_success else npc.get('trap_rooms', [])
-    print("rooms:", target_rooms)
+
     if 'unlocked_doors' not in st.session_state:
         st.session_state.unlocked_doors = {}
 
+    # Сохраняем открытые двери для текущей комнаты
     st.session_state.setdefault('unlocked_doors', {})[current_room_id] = target_rooms
 
 
@@ -259,6 +277,26 @@ def render_npc_page(npc: dict, current_room: dict) -> None:
     if st.session_state[npc_key('dialog_started')]:
         st.markdown("---")
         st.markdown("<h2>Dialog</h2>", unsafe_allow_html=True)
+
+        if npc['type'].lower() == "conversational":
+            npc_patience_key = npc_key('patience')
+            if npc_patience_key not in st.session_state:
+                # Получаем начальное значение терпения из данных NPC
+                initial_patience = npc.get('patience', 3) + 1
+                st.session_state[npc_patience_key] = initial_patience
+                # Сохраняем начальное значение для возможного сброса
+                st.session_state[npc_key('initial_patience')] = initial_patience
+            if st.session_state.get(npc_key('patience'), 0) <= 0:
+                st.error("The character silently disappears into the shadows... It seems you can't expect any help.")
+                if st.button("Return to Current Room", key=npc_key('return')):
+                    st.session_state.selected_npc = None
+                    st.session_state.current_screen = "game"
+                    st.rerun()
+                return
+            else:
+                # Показываем оставшееся терпение
+                patience = st.session_state[npc_key('patience')]
+                st.markdown(f"**Patience remaining:** {patience}", unsafe_allow_html=True)
 
         render_chat_history(npc)
         render_dialog_controls(npc, current_room)
