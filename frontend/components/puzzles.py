@@ -38,7 +38,7 @@ def check_puzzle_condition(condition: str) -> bool:
 def check_puzzle_llm(user_answer, true_answer, desc):
     full_prompt = prompt_puzzle.format(user_input=user_answer, true_answer=true_answer, desc=desc)
     response = gemini_model.generate_content(full_prompt).text
-    return "yes" in response.lower()
+    return "yes" in response.lower() or "ERFOLG".lower() in response.lower()
 
 
 def render_puzzles(current_room: dict):

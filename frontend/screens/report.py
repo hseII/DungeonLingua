@@ -166,11 +166,9 @@ def display_speaking_stats():
         st.session_state.player_stats = {'speaking_rate':[]}
     if len(st.session_state.player_stats['speaking_rate']) == 0:
         st.markdown('No speaking data available yet!', unsafe_allow_html=True)
-    if 'player_stats' in st.session_state and 'speaking_rate' in st.session_state.player_stats:
-        speed = sum(st.session_state.player_stats['speaking_rate']) / len(st.session_state.player_stats['speaking_rate'])
-        st.markdown(f'**Average Speaking Rate**: {speed:.2f} words per second', unsafe_allow_html=True)
-    else:
-        st.markdown('No speaking data available yet!', unsafe_allow_html=True)
+        return
+    speed = sum(st.session_state.player_stats['speaking_rate']) / len(st.session_state.player_stats['speaking_rate'])
+    st.markdown(f'**Average Speaking Rate**: {speed:.2f} words per second', unsafe_allow_html=True)
 
 
 def display_text_analysis():

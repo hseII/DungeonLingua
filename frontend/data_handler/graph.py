@@ -14,7 +14,7 @@ def build_dungeon_graph(visited_rooms: list, all_rooms: list) -> graphviz.Digrap
         margin='0',
         pad='0.5',
         nodesep='0.25',
-        ranksep='1.2',
+        ranksep='0.3',
         splines='ortho'
     )
 

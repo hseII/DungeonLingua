@@ -46,6 +46,7 @@ def get_localized_text(key):
 
     return localized_texts[current_language].get(key, key)
 
+
 # Добавить новую функцию для рендера сокровищ
 def render_treasures(current_room):
     """Рендерит сокровища комнаты"""
@@ -68,6 +69,7 @@ def render_treasures(current_room):
             # Создаем кнопку с явным ключом
             if st.button(f" {treasure['name']}", key=btn_key):
                 show_artifact_dialog()
+
 
 def handle_room_transition(target_room_id, dungeon_data):
     """Обрабатывает переход между комнатами"""
@@ -228,6 +230,7 @@ def check_ffmpeg():
             st.error("Требуется FFmpeg! Инструкции в README.md")
             st.stop()
 
+
 def render():
     st.markdown(CSS_GAME, unsafe_allow_html=True)
 
@@ -270,6 +273,7 @@ def render():
     with st.sidebar:
         show_dungeon_map()
         render_word_dictionary()
+
 
 CSS_GAME = """
             <style>

@@ -89,7 +89,9 @@ class Character:
         return response_text, self.check_success_easy(response_text)
 
     def check_success_easy(self, resp) -> bool:
-        return 'SUCCESS' in resp
+        print(resp)
+        print("ERFOLG" in resp)
+        return 'SUCCESS' in resp or "ERFOLG" in resp
 
     def check_success_llm(self, resp) -> bool:  # true - успех false-не успех
         fill_sucess_prompt = self.sucess_prompt.format(llm_resp=resp)

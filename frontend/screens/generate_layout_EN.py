@@ -1,9 +1,10 @@
 import google.generativeai as genai
 import json
 import re
-from screens.generate_maze import generate_maze, convert_to_json, add_npcs_to_json,\
+from screens.generate_maze import generate_maze, convert_to_json, add_npcs_to_json, \
     add_puzzles_and_treasures, add_guardians, package_dungeon
 from screens.simulate_session import add_random_id_to_json
+
 
 def generate_and_validate_dungeon_EN(language_focus, difficulty_level, api_key_gemini_layout):
     genai.configure(api_key=api_key_gemini_layout)
@@ -32,16 +33,23 @@ The selected focus should be integrated into puzzles, NPC dialogues, and treasur
 ### Critical Requirements:
 1. **NPC System**:
    - Replace ALL generic NPC IDs (npc1, npc2, npc3) with unique fantasy names
-   - Each conversational NPC must:
-     * Have 5-10 simple fantasy words ("potion", "scroll", "dagger")
-     * Clearly hint at these words in their appearance
-     * Example: 
+   **GUARDIAN-TYPE NPCs** (Language Gatekeepers):
+   - EXCLUSIVELY provide vocabulary-based challenges:
+     • Word definitions ("What does 'potion' mean?")
+     • Translations ("How do you say 'зелье' in Common Tongue?")
+     • Contextual usage ("Use 'scroll' in a fantasy sentence")
+
+
+   **CONVERSATIONAL-TYPE NPCs**:
+     - Have 5-10 simple fantasy words ("potion", "scroll", "dagger")
+     - Clearly hint at these words in their appearance
+     - Example: 
        - Name: "Alchemist Bram" 
        - Appearance: "Gnome with bubbling vials and herb-stained fingers"
        - Trigger words: ["potion", "vial", "herb", "ingredient", "concoction"]
 
 2. **Scroll Validation**:
-   - EVERY scroll's linked_npc MUST reference an EXISTING conversational NPC by exact name
+   - EVERY scroll's linked_npc MUST reference an EXISTING conversational (!!!) NPC by exact name
    - Scroll words MUST be exact matches from their NPC's trigger words
    - Example valid connection:
      ```json
@@ -56,7 +64,12 @@ The selected focus should be integrated into puzzles, NPC dialogues, and treasur
    - Vocabulary usage in fantasy contexts
    NO abstract/non-language tasks allowed (!!!)
 
-4. **Challenge Design by Level**:
+4. **Validation Rules**:
+   - EVERY puzzle must test language comprehension
+   - NO abstract/logic puzzles allowed
+   - ALL answers must be objectively verifiable
+
+5. **Challenge Design by Level**:
    - **A (Beginner)**:
      *Vocabulary*: Basic items ("sword", "spell", "gold")
      *Tasks*:
@@ -75,7 +88,7 @@ The selected focus should be integrated into puzzles, NPC dialogues, and treasur
        - "Rewrite: 'I study the tome' (past tense)"
        - "Explain 'enchanted' in: 'The ___ sword glows'"
 
-5. **Scroll Template**:
+6. **Scroll Template**:
 ```json
 {{
   "type": "scroll",
@@ -102,15 +115,22 @@ The selected focus should be integrated into puzzles, NPC dialogues, and treasur
   "linked_npc": "Alchemist Bram"  // MUST match existing NPC
 }}
 
+   - Each CONVERSATIONAL-TYPE NPC must have EXACTLY ONE associated treasure scroll
+   - NO NPC should have multiple scrolls
+   - NO scroll should exist without linked NPC
+
 ### JSON Structure:
 USE THIS EXACT STRUCTURE. Only fill empty fields. Keep all existing keys and formatting.
 
 {json.dumps(final_data, indent=2)}
 
 Output Instructions:
-  - Replace ALL generic NPC IDs (npc1/npc2/npc3) with fantasy names
-  - Ensure ALL scrolls reference EXISTING NPCs by exact name
-  - Verify ALL tasks are language-focused
+  - Replace ALL generic NPC IDs (npc1/npc2/npc3 ...) with fantasy names
+  - Ensure ALL scrolls:
+     * Reference EXACTLY ONE EXISTING conversational NPC by exact name
+     * Maintain strict 1:1 NPC-to-scroll ratio
+  - Verify ALL tasks are language-focused (NO logic)
+  - GUARDIANs test vocabulary, PUZZLEs test grammar
 
 Output ONLY the completed JSON WRAPPED in ```json``` markers. I use (re.search(r'```json\s*({{.*?}})\s*```', validation_response, re.DOTALL)).
 """
@@ -132,3 +152,4 @@ Output ONLY the completed JSON WRAPPED in ```json``` markers. I use (re.search(r
     except Exception as e:
         print(f"Error: {str(e)}")
         return None
+

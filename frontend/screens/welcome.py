@@ -3,6 +3,7 @@ import time
 from data_handler.json_handler import load_and_validate, find_room_by_id
 from screens.my.api_key import api_key_gemini_layout, api_key_pixellab
 from screens.generate_layout_EN import generate_and_validate_dungeon_EN
+from screens.generate_layout_DE import generate_and_validate_dungeon_DE
 from constants import ROOT_LOG
 from screens.generate_images import generate_npc_avatars
 import csv
@@ -28,13 +29,19 @@ def detect_mobile():
     # return False
 
 
-def generate(file, language_focus, difficulty_level):
+def generate_en(file, language_focus, difficulty_level):
     generated_json = generate_and_validate_dungeon_EN(language_focus=language_focus,
+                                                      difficulty_level=difficulty_level,
+                                                      api_key_gemini_layout=api_key_gemini_layout)
+    generate_npc_avatars(json_file_path=file, api_key_pixellab=api_key_pixellab)
+
+
+def generate_de(file, language_focus, difficulty_level):
+    generated_json = generate_and_validate_dungeon_DE(language_focus=language_focus,
                                                       difficulty_level=difficulty_level,
                                                       api_key_gemini_layout=api_key_gemini_layout)
     print(generated_json)
     generate_npc_avatars(json_file_path=file, api_key_pixellab=api_key_pixellab)
-
 
 def render():
     st.markdown(CSS_RENDER, unsafe_allow_html=True)
@@ -88,10 +95,17 @@ def render():
                 language_focus = "grammar"
             start = time.time()
 
-            # file = "data/dungeon_of_lingua.json"
-            file = "data/dungeon_of_lingua_checked.json"
+            file = "data/dungeon_of_lingua.json"
+            # file = "data/dungeon_of_lingua_checked.json"
+            current_language = st.session_state.get("selected_language", "en")
+            print(current_language)
+            if current_language == 'en':
+                # generate_en(file=file, language_focus=language_focus, difficulty_level=difficulty_level)
+                file = "data/dungeon_of_lingua_en.json"
+            else:
+                file = "data/dungeon_of_lingua_de.json"
+                #generate_de(file=file, language_focus=language_focus, difficulty_level=difficulty_level)
             dungeon_data = load_and_validate(file)
-            # generate(file=file, language_focus=language_focus, difficulty_level=difficulty_level)
             print("GOOD VALIDATION!!!")
             st.session_state.player_preferences = {
                 "language": selected_language,
@@ -265,4 +279,3 @@ CSS_RENDER = """
     }
     </style>
     """
-

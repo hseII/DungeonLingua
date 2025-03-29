@@ -222,7 +222,7 @@ def process_audio_input(audio_bytes: bytes, npc: dict, current_room: dict) -> No
         audio.export(temp_file.name, format="wav")
         temp_file_path = temp_file.name
 
-    recognized_text = "a lot of text"
+    recognized_text = st.session_state[npc_key('character')].transcribe_audio(temp_file_path)
     speed_sp = st.session_state[npc_key('character')].speaking_rate(
         transcript=recognized_text,
         path=temp_file_path
@@ -297,7 +297,8 @@ def render_dialog_controls(npc: dict, current_room: dict) -> None:
         st.rerun()
 
     # Text input
-    user_input = st.text_input(get_localized_text("message_input"), key=npc_key('text_input'))
+    user_input = st.text_area(get_localized_text("message_input"), key=npc_key('text_input'),
+                               height=100)
     if st.button(get_localized_text("send_button")):
         if user_input.strip():
             process_text_input(user_input, npc, current_room)
@@ -467,5 +468,8 @@ CSS_STYLES = """
         position: relative;
         text-align: center;
     }
+    
+    
+    
 </style>
 """
