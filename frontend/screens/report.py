@@ -162,8 +162,12 @@ def display_vocabulary():
 # Функция для анализа текста и отображения результатов
 def display_speaking_stats():
     st.markdown('### Speaking Statistics', unsafe_allow_html=True)
+    if 'player_stats' not in st.session_state:
+        st.session_state.player_stats = {'speaking_rate':[]}
+    if len(st.session_state.player_stats['speaking_rate']) == 0:
+        st.markdown('No speaking data available yet!', unsafe_allow_html=True)
     if 'player_stats' in st.session_state and 'speaking_rate' in st.session_state.player_stats:
-        speed = st.session_state.player_stats['speaking_rate']
+        speed = sum(st.session_state.player_stats['speaking_rate']) / len(st.session_state.player_stats['speaking_rate'])
         st.markdown(f'**Average Speaking Rate**: {speed:.2f} words per second', unsafe_allow_html=True)
     else:
         st.markdown('No speaking data available yet!', unsafe_allow_html=True)
@@ -175,19 +179,12 @@ def display_text_analysis():
     else:
         st.markdown('No text found for analysis!', unsafe_allow_html=True)
         return
-    # if os.path.exists(ROOT_LOG):
-    #     with open(ROOT_LOG, "r") as file:
-    #         reader = csv.DictReader(file)
-    #         join_text = ""
-    #         for row in reader:
-    #             text = row["text"]
-    #             join_text += text
     level_counts = analyze_text(join_text)
     st.markdown('### Text Analysis', unsafe_allow_html=True)
     st.plotly_chart(
         create_pie_chart(level_counts),
         use_container_width=True,
-        config={'displayModeBar': False}  # Hide the plotly toolbar for cleaner look
+        config={'displayModeBar': False}
     )
     # Отображение текстовой статистики
     for level, count in level_counts.items():

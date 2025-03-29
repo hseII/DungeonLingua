@@ -1,7 +1,8 @@
 import streamlit as st
 from constants import ROOT_LOG
 from screens.my.character import Character, prompt_template_guardian, prompt_template_conv, gemini_model, whisper_model, \
-    prompt_template_check_sucess, prompt_template_trap_room
+    prompt_template_check_sucess, prompt_template_trap_room, prompt_template_guardian_de, prompt_template_conv_de, \
+    prompt_template_check_sucess_de, prompt_template_trap_room_de
 from pydub import AudioSegment
 from io import BytesIO
 import tempfile
@@ -18,8 +19,8 @@ def get_localized_text(key):
             "speak_stranger": "Speak, Stranger",
             "record_help": "Press and hold to parley",
             "message_input": "Inscribe thy words:",
-            "send_button": "Dispatch",
-            "start_dialog": "Commence Parlay",
+            "send_button": "Send",
+            "start_dialog": "Start dialog",
             "back_to_room": "Retreat to Chamber",
             "dialog_title": "Court of Words",
             "patience_remaining": "Mercy remaining:",
@@ -95,40 +96,73 @@ def initialize_npc_states(npc: dict) -> None:
     if npc['type'].lower() == "conversational" and not st.session_state.get(npc_key('patience')):
         st.session_state[npc_key('patience')] = npc.get('patience', 3)
     if 'player_stats' not in st.session_state:
-        st.session_state.player_stats = {}
+        st.session_state.player_stats = {'speaking_rate':[]}
 
 
 def create_npc_character(npc: dict) -> Character:
     """Create Character instance based on NPC type"""
-    if "guard" in npc['type'].lower():
-        character = Character(
-            prompt=prompt_template_guardian,
-            sucess_prompt=prompt_template_check_sucess,
-            whisper_model=whisper_model,
-            gemini_model=gemini_model
-        )
-        character.fill(
-            name=npc['name'],
-            appearance=npc['appearance'],
-            behavior=npc['behavior'],
-            challenge=npc['challenge']
-        )
+    current_language = st.session_state.get("selected_language", "en")
+    print("!!", current_language)
+    if current_language == 'en':
+        if "guard" in npc['type'].lower():
+            character = Character(
+                prompt=prompt_template_guardian,
+                sucess_prompt=prompt_template_check_sucess,
+                whisper_model=whisper_model,
+                gemini_model=gemini_model
+            )
+            character.fill(
+                name=npc['name'],
+                appearance=npc['appearance'],
+                behavior=npc['behavior'],
+                challenge=npc['challenge']
+            )
+        else:
+            character = Character(
+                prompt=prompt_template_conv,
+                sucess_prompt=prompt_template_check_sucess,
+                whisper_model=whisper_model,
+                gemini_model=gemini_model
+            )
+            traps = "trap room" if type(npc['trap_rooms']) == list else ", ".join(npc['trap_rooms'])
+            character.fill(
+                name=npc['name'],
+                behavior=npc['behavior'],
+                appearance=npc['appearance'],
+                trigger_words=npc['trigger_words'],
+                information_to_share=npc['information_to_share'],
+                trap_rooms=traps
+            )
     else:
-        character = Character(
-            prompt=prompt_template_conv,
-            sucess_prompt=prompt_template_check_sucess,
-            whisper_model=whisper_model,
-            gemini_model=gemini_model
-        )
-        traps = "trap room" if type(npc['trap_rooms']) == list else ", ".join(npc['trap_rooms'])
-        character.fill(
-            name=npc['name'],
-            behavior=npc['behavior'],
-            appearance=npc['appearance'],
-            trigger_words=npc['trigger_words'],
-            information_to_share=npc['information_to_share'],
-            trap_rooms=traps
-        )
+        if "guard" in npc['type'].lower():
+            character = Character(
+                prompt=prompt_template_guardian_de,
+                sucess_prompt=prompt_template_check_sucess_de,
+                whisper_model=whisper_model,
+                gemini_model=gemini_model
+            )
+            character.fill(
+                name=npc['name'],
+                appearance=npc['appearance'],
+                behavior=npc['behavior'],
+                challenge=npc['challenge']
+            )
+        else:
+            character = Character(
+                prompt=prompt_template_conv_de,
+                sucess_prompt=prompt_template_check_sucess_de,
+                whisper_model=whisper_model,
+                gemini_model=gemini_model
+            )
+            traps = "trap room" if type(npc['trap_rooms']) == list else ", ".join(npc['trap_rooms'])
+            character.fill(
+                name=npc['name'],
+                behavior=npc['behavior'],
+                appearance=npc['appearance'],
+                trigger_words=npc['trigger_words'],
+                information_to_share=npc['information_to_share'],
+                trap_rooms=traps
+            )
     return character
 
 
@@ -188,12 +222,12 @@ def process_audio_input(audio_bytes: bytes, npc: dict, current_room: dict) -> No
         audio.export(temp_file.name, format="wav")
         temp_file_path = temp_file.name
 
-    recognized_text = st.session_state[npc_key('character')].transcribe_audio(temp_file_path)
+    recognized_text = "a lot of text"
     speed_sp = st.session_state[npc_key('character')].speaking_rate(
         transcript=recognized_text,
         path=temp_file_path
     )
-    st.session_state.player_stats['speaking_rate'] = speed_sp
+    st.session_state.player_stats['speaking_rate'].append(speed_sp)
     log_user_text(text=recognized_text, root=ROOT_LOG)
     st.session_state[npc_key('chat_history')].append({'type': 'player', 'text': recognized_text})
 
@@ -274,7 +308,7 @@ def render_dialog_controls(npc: dict, current_room: dict) -> None:
 # Main Render Function
 # ======================
 def render_npc_page(npc: dict, current_room: dict) -> None:
-    handle_successful_dialog(npc, current_room)
+    # handle_successful_dialog(npc, current_room)
     """Main function to render NPC page"""
     # Apply CSS styles
     st.markdown(CSS_STYLES, unsafe_allow_html=True)

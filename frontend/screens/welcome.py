@@ -88,8 +88,8 @@ def render():
                 language_focus = "grammar"
             start = time.time()
 
-            file = "data/dungeon_of_lingua.json"
-            # file = "data/dungeon_of_lingua_checked.json"
+            # file = "data/dungeon_of_lingua.json"
+            file = "data/dungeon_of_lingua_checked.json"
             dungeon_data = load_and_validate(file)
             # generate(file=file, language_focus=language_focus, difficulty_level=difficulty_level)
             print("GOOD VALIDATION!!!")
